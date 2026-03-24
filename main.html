@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>359 Golf Club - Score & Community</title>
+    <title>359 Golf Club - My Score First</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
@@ -49,17 +49,17 @@
     <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
             <!-- Logo -->
-            <div class="flex items-center gap-2 cursor-pointer" onclick="showPage('main')">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="showPage('my-score')">
                 <div class="bg-emerald-600 p-1.5 rounded-lg">
                     <i data-lucide="flag" class="text-white w-5 h-5"></i>
                 </div>
                 <h1 class="text-xl font-extrabold tracking-tight text-emerald-800">359 <span class="font-light">GOLF</span></h1>
             </div>
 
-            <!-- Main Menu (Expanded) -->
+            <!-- Main Menu (Expanded & Reordered) -->
             <nav class="hidden md:flex items-center space-x-8 h-full">
-                <a href="javascript:void(0)" onclick="showPage('main')" id="nav-main" class="nav-link active text-sm font-semibold hover:text-emerald-600">359 Score</a>
-                <a href="javascript:void(0)" onclick="showPage('my-score')" id="nav-my-score" class="nav-link text-sm font-semibold hover:text-emerald-600">My Score</a>
+                <a href="javascript:void(0)" onclick="showPage('my-score')" id="nav-my-score" class="nav-link active text-sm font-semibold hover:text-emerald-600">My Score</a>
+                <a href="javascript:void(0)" onclick="showPage('main')" id="nav-main" class="nav-link text-sm font-semibold hover:text-emerald-600">359 Score</a>
                 <div class="h-4 w-[1px] bg-gray-200 mx-2"></div>
                 <a href="javascript:void(0)" onclick="showPage('free-board')" id="nav-free-board" class="nav-link text-sm font-semibold hover:text-emerald-600">자유게시판</a>
                 <a href="javascript:void(0)" onclick="showPage('market-board')" id="nav-market-board" class="nav-link text-sm font-semibold hover:text-emerald-600">장터게시판</a>
@@ -82,8 +82,59 @@
         </div>
     </header>
 
-    <!-- MAIN DASHBOARD PAGE (359 SCORE) -->
-    <main id="page-main" class="page-content page-active max-w-7xl mx-auto px-4 py-8">
+    <!-- MY SCORE PAGE (Default Page) -->
+    <main id="page-my-score" class="page-content page-active max-w-7xl mx-auto px-4 py-8">
+        <div class="mb-8">
+            <h2 class="text-3xl font-extrabold text-gray-900 flex items-center gap-3">
+                <i data-lucide="user" class="text-emerald-600 w-8 h-8"></i>
+                <span id="userNameDisplay">이상전</span> 님의 Score Profile
+            </h2>
+            <p class="text-gray-500 mt-2">상세 성적 분석 및 역대 스코어 리포트입니다.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                <p class="text-xs text-gray-400 font-semibold mb-1 uppercase">Best Score</p>
+                <p class="text-2xl font-bold text-emerald-600"><span id="bestScoreText">97</span> <span class="text-sm font-normal text-gray-400">타</span></p>
+            </div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                <p class="text-xs text-gray-400 font-semibold mb-1 uppercase">Average</p>
+                <p class="text-2xl font-bold text-gray-800"><span id="avgScoreText">103.1</span> <span class="text-sm font-normal text-gray-400">타</span></p>
+            </div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                <p class="text-xs text-gray-400 font-semibold mb-1 uppercase">Member Info</p>
+                <p id="memberJoinText" class="text-sm font-bold text-gray-800 mt-2 tracking-tight">2023.02 신규</p>
+            </div>
+            <div class="bg-emerald-50 p-5 rounded-2xl border border-emerald-100">
+                <p class="text-xs text-emerald-600 font-semibold mb-1 uppercase">Achievement</p>
+                <p id="achievementText" class="text-sm font-bold text-emerald-800 mt-2">깨100 달성 (2025.05)</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <h3 class="font-bold text-gray-800 mb-6 flex items-center gap-2"><i data-lucide="trending-up" class="w-5 h-5"></i> 연도별 스코어 히스토리</h3>
+                <div class="h-80"><canvas id="myDetailChart"></canvas></div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50"><h3 class="font-bold text-gray-800 text-sm uppercase">경기 상세 기록</h3></div>
+                <div class="max-h-[400px] overflow-y-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-white sticky top-0 border-b">
+                            <tr class="text-gray-400 text-[10px] uppercase">
+                                <th class="px-6 py-3 font-semibold">일자</th>
+                                <th class="px-6 py-3 font-semibold text-right">스코어</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scoreTableBody" class="divide-y divide-gray-50"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 359 SCORE (DASHBOARD) PAGE -->
+    <main id="page-main" class="page-content max-w-7xl mx-auto px-4 py-8">
         <!-- Score Dashboard Section -->
         <section class="mb-12">
             <div class="flex items-end justify-between mb-6">
@@ -145,9 +196,7 @@
                 </div>
                 <div class="p-2">
                     <table class="w-full text-sm">
-                        <tbody id="mainFreePreview" class="divide-y divide-gray-50">
-                            <!-- JS Injected -->
-                        </tbody>
+                        <tbody id="mainFreePreview" class="divide-y divide-gray-50"></tbody>
                     </table>
                 </div>
             </div>
@@ -156,62 +205,9 @@
                     <h3 class="font-bold text-gray-800 flex items-center gap-2"><i data-lucide="shopping-bag" class="w-4 h-4 text-amber-500"></i> 장터게시판</h3>
                     <button onclick="showPage('market-board')" class="text-xs text-amber-600 font-semibold hover:underline">전체보기</button>
                 </div>
-                <div class="p-4 grid grid-cols-2 gap-4" id="mainMarketPreview">
-                    <!-- JS Injected -->
-                </div>
+                <div class="p-4 grid grid-cols-2 gap-4" id="mainMarketPreview"></div>
             </div>
         </section>
-    </main>
-
-    <!-- MY SCORE PAGE -->
-    <main id="page-my-score" class="page-content max-w-7xl mx-auto px-4 py-8">
-        <div class="mb-8">
-            <h2 class="text-3xl font-extrabold text-gray-900 flex items-center gap-3">
-                <i data-lucide="user" class="text-emerald-600 w-8 h-8"></i>
-                <span id="userNameDisplay">이상전</span> 님의 Score Profile
-            </h2>
-            <p class="text-gray-500 mt-2">상세 성적 분석 및 역대 스코어 리포트입니다.</p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                <p class="text-xs text-gray-400 font-semibold mb-1 uppercase">Best Score</p>
-                <p class="text-2xl font-bold text-emerald-600"><span id="bestScoreText">97</span> <span class="text-sm font-normal text-gray-400">타</span></p>
-            </div>
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                <p class="text-xs text-gray-400 font-semibold mb-1 uppercase">Average</p>
-                <p class="text-2xl font-bold text-gray-800"><span id="avgScoreText">103.1</span> <span class="text-sm font-normal text-gray-400">타</span></p>
-            </div>
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                <p class="text-xs text-gray-400 font-semibold mb-1 uppercase">Member Info</p>
-                <p id="memberJoinText" class="text-sm font-bold text-gray-800 mt-2 tracking-tight">2023.02 신규</p>
-            </div>
-            <div class="bg-emerald-50 p-5 rounded-2xl border border-emerald-100">
-                <p class="text-xs text-emerald-600 font-semibold mb-1 uppercase">Achievement</p>
-                <p id="achievementText" class="text-sm font-bold text-emerald-800 mt-2">깨100 달성 (2025.05)</p>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <h3 class="font-bold text-gray-800 mb-6 flex items-center gap-2"><i data-lucide="trending-up" class="w-5 h-5"></i> 연도별 스코어 히스토리</h3>
-                <div class="h-80"><canvas id="myDetailChart"></canvas></div>
-            </div>
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50"><h3 class="font-bold text-gray-800 text-sm uppercase">경기 상세 기록</h3></div>
-                <div class="max-h-[400px] overflow-y-auto">
-                    <table class="w-full text-sm text-left">
-                        <thead class="bg-white sticky top-0 border-b">
-                            <tr class="text-gray-400 text-[10px] uppercase">
-                                <th class="px-6 py-3 font-semibold">일자</th>
-                                <th class="px-6 py-3 font-semibold text-right">스코어</th>
-                            </tr>
-                        </thead>
-                        <tbody id="scoreTableBody" class="divide-y divide-gray-50"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
     </main>
 
     <!-- FREE BOARD PAGE -->
@@ -304,11 +300,9 @@
         let myChartInstance = null;
 
         function showPage(pageId) {
-            // 페이지 전환
             document.querySelectorAll('.page-content').forEach(p => p.classList.remove('page-active'));
             document.getElementById('page-' + pageId).classList.add('page-active');
             
-            // 네비게이션 활성화 표시
             document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
             const activeNav = document.getElementById('nav-' + pageId);
             if(activeNav) activeNav.classList.add('active');
@@ -421,6 +415,8 @@
             });
             switchUser("이상전");
             initBoards();
+            // Start at My Score page
+            showPage('my-score');
         };
     </script>
 </body>
