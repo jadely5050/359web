@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>359 Golf Club - Score & Community</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap');
+        body { font-family: 'Pretendard', sans-serif; background-color: #f3f4f6; }
+        
+        .nav-link { 
+            position: relative;
+            padding: 0 4px;
+            transition: all 0.2s;
+        }
+        .nav-link.active {
+            color: #059669;
+            font-weight: 700;
+        }
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #059669;
+            border-radius: 99px;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #10b981; border-radius: 10px; }
+
+        .page-content { display: none; }
+        .page-active { display: block; }
+    </style>
+</head>
+<body class="text-gray-900">
+
+    <!-- Header / Navigation -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <!-- Logo -->
+            <div class="flex items-center gap-2 cursor-pointer" onclick="showPage('main')">
+                <div class="bg-emerald-600 p-1.5 rounded-lg">
+                    <i data-lucide="flag" class="text-white w-5 h-5"></i>
+                </div>
+                <h1 class="text-xl font-extrabold tracking-tight text-emerald-800">359 <span class="font-light">GOLF</span></h1>
+            </div>
+
+            <!-- Main Menu (Expanded) -->
+            <nav class="hidden md:flex items-center space-x-8 h-full">
+                <a href="javascript:void(0)" onclick="showPage('main')" id="nav-main" class="nav-link active text-sm font-semibold hover:text-emerald-600">359 Score</a>
+                <a href="javascript:void(0)" onclick="showPage('my-score')" id="nav-my-score" class="nav-link text-sm font-semibold hover:text-emerald-600">My Score</a>
+                <div class="h-4 w-[1px] bg-gray-200 mx-2"></div>
+                <a href="javascript:void(0)" onclick="showPage('free-board')" id="nav-free-board" class="nav-link text-sm font-semibold hover:text-emerald-600">자유게시판</a>
+                <a href="javascript:void(0)" onclick="showPage('market-board')" id="nav-market-board" class="nav-link text-sm font-semibold hover:text-emerald-600">장터게시판</a>
+            </nav>
+
+            <!-- User Auth & Switcher -->
+            <div class="flex items-center gap-4">
+                <div class="text-right hidden sm:block">
+                    <p class="text-xs text-gray-400">Current User</p>
+                    <select id="userSelector" onchange="switchUser(this.value)" class="text-sm font-bold bg-transparent border-none cursor-pointer focus:ring-0 text-right p-0">
+                        <option value="이상전" selected>이상전 님</option>
+                        <option value="소회장">소회장 님</option>
+                        <option value="김부장">김부장 님</option>
+                    </select>
+                </div>
+                <button class="w-10 h-10 rounded-full bg-emerald-100 border-2 border-emerald-500 flex items-center justify-center text-emerald-700 hover:bg-emerald-200 transition-all shadow-inner">
+                    <i data-lucide="user-check" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN DASHBOARD PAGE (359 SCORE) -->
+    <main id="page-main" class="page-content page-active max-w-7xl mx-auto px-4 py-8">
+        <!-- Score Dashboard Section -->
+        <section class="mb-12">
+            <div class="flex items-end justify-between mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold flex items-center gap-2">
+                        <i data-lucide="line-chart" class="text-emerald-600"></i>
+                        359 Score 리포트
+                    </h2>
+                    <p class="text-sm text-gray-500 mt-1">멤버별 최근 3회 정기 모임 스코어 추이</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <canvas id="scoreChart" class="w-full h-64"></canvas>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="bg-gradient-to-br from-emerald-600 to-teal-700 p-6 rounded-2xl text-white shadow-lg">
+                        <h3 class="text-emerald-100 text-sm font-medium mb-1">모임 평균 타수</h3>
+                        <div class="flex items-baseline gap-2">
+                            <span class="text-4xl font-bold">98.3</span>
+                            <span class="text-emerald-200 text-sm">타</span>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                        <h4 class="text-sm font-bold text-gray-700 mb-4 uppercase tracking-wider">멤버별 Best Score</h4>
+                        <ul class="space-y-3">
+                            <li class="flex items-center justify-between">
+                                <span class="flex items-center gap-2 text-sm font-medium">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> 소회장
+                                </span>
+                                <span class="text-emerald-600 font-bold">87타</span>
+                            </li>
+                            <li class="flex items-center justify-between">
+                                <span class="flex items-center gap-2 text-sm font-medium">
+                                    <span class="w-2 h-2 rounded-full bg-blue-500"></span> 김부장
+                                </span>
+                                <span class="text-blue-600 font-bold">96타</span>
+                            </li>
+                            <li class="flex items-center justify-between">
+                                <span class="flex items-center gap-2 text-sm font-medium">
+                                    <span class="w-2 h-2 rounded-full bg-orange-500"></span> 이상전
+                                </span>
+                                <span class="text-orange-600 font-bold">97타</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Board Preview Section -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-50 flex justify-between items-center">
+                    <h3 class="font-bold text-gray-800 flex items-center gap-2"><i data-lucide="message-square" class="w-4 h-4 text-emerald-500"></i> 자유게시판</h3>
+                    <button onclick="showPage('free-board')" class="text-xs text-emerald-600 font-semibold hover:underline">전체보기</button>
+                </div>
+                <div class="p-2">
+                    <table class="w-full text-sm">
+                        <tbody id="mainFreePreview" class="divide-y divide-gray-50">
+                            <!-- JS Injected -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-50 flex justify-between items-center">
+                    <h3 class="font-bold text-gray-800 flex items-center gap-2"><i data-lucide="shopping-bag" class="w-4 h-4 text-amber-500"></i> 장터게시판</h3>
+                    <button onclick="showPage('market-board')" class="text-xs text-amber-600 font-semibold hover:underline">전체보기</button>
+                </div>
+                <div class="p-4 grid grid-cols-2 gap-4" id="mainMarketPreview">
+                    <!-- JS Injected -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- MY SCORE PAGE -->
+    <main id="page-my-score" class="page-content max-w-7xl mx-auto px-4 py-8">
+        <div class="mb-8">
+            <h2 class="text-3xl font-extrabold text-gray-900 flex items-center gap-3">
+                <i data-lucide="user" class="text-emerald-600 w-8 h-8"></i>
+                <span id="userNameDisplay">이상전</span> 님의 Score Profile
+            </h2>
+            <p class="text-gray-500 mt-2">상세 성적 분석 및 역대 스코어 리포트입니다.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                <p class="text-xs text-gray-400 font-semibold mb-1 uppercase">Best Score</p>
+                <p class="text-2xl font-bold text-emerald-600"><span id="bestScoreText">97</span> <span class="text-sm font-normal text-gray-400">타</span></p>
+            </div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                <p class="text-xs text-gray-400 font-semibold mb-1 uppercase">Average</p>
+                <p class="text-2xl font-bold text-gray-800"><span id="avgScoreText">103.1</span> <span class="text-sm font-normal text-gray-400">타</span></p>
+            </div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                <p class="text-xs text-gray-400 font-semibold mb-1 uppercase">Member Info</p>
+                <p id="memberJoinText" class="text-sm font-bold text-gray-800 mt-2 tracking-tight">2023.02 신규</p>
+            </div>
+            <div class="bg-emerald-50 p-5 rounded-2xl border border-emerald-100">
+                <p class="text-xs text-emerald-600 font-semibold mb-1 uppercase">Achievement</p>
+                <p id="achievementText" class="text-sm font-bold text-emerald-800 mt-2">깨100 달성 (2025.05)</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <h3 class="font-bold text-gray-800 mb-6 flex items-center gap-2"><i data-lucide="trending-up" class="w-5 h-5"></i> 연도별 스코어 히스토리</h3>
+                <div class="h-80"><canvas id="myDetailChart"></canvas></div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50"><h3 class="font-bold text-gray-800 text-sm uppercase">경기 상세 기록</h3></div>
+                <div class="max-h-[400px] overflow-y-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-white sticky top-0 border-b">
+                            <tr class="text-gray-400 text-[10px] uppercase">
+                                <th class="px-6 py-3 font-semibold">일자</th>
+                                <th class="px-6 py-3 font-semibold text-right">스코어</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scoreTableBody" class="divide-y divide-gray-50"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- FREE BOARD PAGE -->
+    <main id="page-free-board" class="page-content max-w-7xl mx-auto px-4 py-8">
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h2 class="text-3xl font-extrabold text-gray-900 flex items-center gap-3">
+                    <i data-lucide="message-square" class="text-emerald-600 w-8 h-8"></i>
+                    자유게시판
+                </h2>
+                <p class="text-gray-500 mt-2">359 멤버들의 자유로운 소통 공간입니다.</p>
+            </div>
+            <button class="bg-emerald-600 text-white px-6 py-2 rounded-full font-bold text-sm hover:bg-emerald-700 shadow-md">글쓰기</button>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+            <table class="w-full text-left">
+                <thead class="bg-gray-50 border-b border-gray-100">
+                    <tr class="text-gray-400 text-xs uppercase">
+                        <th class="px-8 py-4 font-semibold w-16">번호</th>
+                        <th class="px-8 py-4 font-semibold">제목</th>
+                        <th class="px-8 py-4 font-semibold">글쓴이</th>
+                        <th class="px-8 py-4 font-semibold text-right">날짜</th>
+                    </tr>
+                </thead>
+                <tbody id="freeBoardFull" class="divide-y divide-gray-50"></tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- MARKET BOARD PAGE -->
+    <main id="page-market-board" class="page-content max-w-7xl mx-auto px-4 py-8">
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h2 class="text-3xl font-extrabold text-gray-900 flex items-center gap-3">
+                    <i data-lucide="shopping-bag" class="text-amber-500 w-8 h-8"></i>
+                    장터게시판
+                </h2>
+                <p class="text-gray-500 mt-2">멤버간 중고 용품 거래 공간입니다.</p>
+            </div>
+            <button class="bg-amber-500 text-white px-6 py-2 rounded-full font-bold text-sm hover:bg-amber-600 shadow-md">상품 등록</button>
+        </div>
+        <div id="marketBoardFull" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+    </main>
+
+    <footer class="mt-20 border-t border-gray-200 py-10 bg-white">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-emerald-700 font-bold text-lg mb-2">359 GOLF CLUB</p>
+            <p class="text-gray-400 text-xs">© 2026 359 Golf Members. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        const memberData = {
+            "이상전": {
+                best: 97, avg: 103.1, info: "2023.02 신규", achievement: "깨100 달성 (2025.05)",
+                labels: ['23.03', '23.05', '24.03', '24.05', '24.09', '25.05', '25.09', '26.03'],
+                scores: [114, 108, 103, 101, 107, 97, 97, 108]
+            },
+            "소회장": {
+                best: 87, avg: 93.4, info: "창립 멤버", achievement: "깨80 달성 (2019.03)",
+                labels: ['20.03', '20.05', '21.05', '22.03', '22.05', '22.09', '23.03', '23.05', '24.03', '24.05', '24.09', '25.05', '25.09'],
+                scores: [97, 91, 91, 96, 87, 100, 103, 97, 89, 93, 91, 89, 97]
+            },
+            "김부장": {
+                best: 96, avg: 104.5, info: "2016.09 신규", achievement: "깨100 달성 (2020.03)",
+                labels: ['20.03', '20.05', '21.05', '22.03', '22.05', '22.09', '23.03', '23.09', '24.03', '24.05', '24.09', '25.05', '25.09', '26.03'],
+                scores: [96, 103, 105, 105, 121, 106, 103, 97, 103, 103, 107, 102, 108, 96]
+            }
+        };
+
+        const freePosts = [
+            { id: 5, title: "이번 라운딩 장소 추천 받습니다", author: "이상전", date: "26.03.24" },
+            { id: 4, title: "드라이버 입스 왔는데 극복법 있나요?", author: "김부장", date: "26.03.22" },
+            { id: 3, title: "소회장님 지난번 스코어 대단하시네요!", author: "이회원", date: "26.03.20" },
+            { id: 2, title: "주말 라운딩 취소자 구함 (1명)", author: "박프로", date: "26.03.18" },
+            { id: 1, title: "신규 가입 인사드립니다.", author: "최신입", date: "26.03.15" }
+        ];
+
+        const marketPosts = [
+            { id: 105, title: "테일러메이드 스텔스2 드라이버", price: "350,000", author: "김부장", date: "26.03.23", img: "https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=400&auto=format&fit=crop" },
+            { id: 104, title: "보이스캐디 T9 거리측정기", price: "180,000", author: "이상전", date: "26.03.22", img: "https://images.unsplash.com/photo-1592656670411-b91130bcbe3e?w=400&auto=format&fit=crop" },
+            { id: 103, title: "타이틀리스트 Pro V1 2더즌 (새상품)", price: "120,000", author: "소회장", date: "26.03.21", img: "https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?w=400&auto=format&fit=crop" },
+            { id: 102, title: "풋조이 골프화 265mm (1회 착용)", price: "80,000", author: "최회원", date: "26.03.19", img: "https://images.unsplash.com/photo-1600269452121-4f2416755c48?w=400&auto=format&fit=crop" },
+            { id: 101, title: "퍼팅 연습기 매트 포함", price: "30,000", author: "박회원", date: "26.03.17", img: "https://images.unsplash.com/photo-1593111774240-d529f12cf4bb?w=400&auto=format&fit=crop" }
+        ];
+
+        let myChartInstance = null;
+
+        function showPage(pageId) {
+            // 페이지 전환
+            document.querySelectorAll('.page-content').forEach(p => p.classList.remove('page-active'));
+            document.getElementById('page-' + pageId).classList.add('page-active');
+            
+            // 네비게이션 활성화 표시
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            const activeNav = document.getElementById('nav-' + pageId);
+            if(activeNav) activeNav.classList.add('active');
+            
+            window.scrollTo(0, 0);
+        }
+
+        function switchUser(userName) {
+            const data = memberData[userName];
+            if(!data) return;
+            document.getElementById('userNameDisplay').innerText = userName;
+            document.getElementById('bestScoreText').innerText = data.best;
+            document.getElementById('avgScoreText').innerText = data.avg;
+            document.getElementById('memberJoinText').innerText = data.info;
+            document.getElementById('achievementText').innerText = data.achievement;
+            
+            const tbody = document.getElementById('scoreTableBody');
+            tbody.innerHTML = '';
+            for(let i = data.labels.length - 1; i >= 0; i--) {
+                const tr = document.createElement('tr');
+                const isUnder100 = data.scores[i] < 100;
+                if(isUnder100) tr.classList.add('bg-emerald-50/30');
+                tr.innerHTML = `<td class="px-6 py-4 font-medium text-gray-600">${data.labels[i]}</td><td class="px-6 py-4 text-right font-bold ${isUnder100 ? 'text-emerald-600 italic underline' : 'text-gray-800'}">${data.scores[i]}</td>`;
+                tbody.appendChild(tr);
+            }
+            updateMyChart(data.labels, data.scores, userName);
+        }
+
+        function updateMyChart(labels, scores, name) {
+            const ctx = document.getElementById('myDetailChart').getContext('2d');
+            if (myChartInstance) myChartInstance.destroy();
+            myChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: name + ' 스코어',
+                        data: scores,
+                        backgroundColor: (c) => c.dataset.data[c.dataIndex] <= 100 ? 'rgba(16, 185, 129, 0.8)' : 'rgba(209, 213, 219, 0.8)',
+                        borderRadius: 6,
+                    }, {
+                        label: '추세', data: scores, type: 'line', borderColor: '#10b981', borderDash: [5, 5], pointRadius: 2, fill: false, tension: 0.3
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { reverse: true, min: 80, max: 130 } }, plugins: { legend: { display: false } } }
+            });
+        }
+
+        function initBoards() {
+            const freePreview = document.getElementById('mainFreePreview');
+            freePreview.innerHTML = freePosts.slice(0, 3).map(p => `
+                <tr class="hover:bg-gray-50 cursor-pointer" onclick="showPage('free-board')">
+                    <td class="px-4 py-3">${p.title}</td>
+                    <td class="px-4 py-3 text-right text-gray-400 text-xs">${p.date}</td>
+                </tr>
+            `).join('');
+
+            const marketPreview = document.getElementById('mainMarketPreview');
+            marketPreview.innerHTML = marketPosts.slice(0, 2).map(p => `
+                <div class="group cursor-pointer" onclick="showPage('market-board')">
+                    <div class="aspect-video bg-gray-100 rounded-lg mb-2 overflow-hidden">
+                        <img src="${p.img}" class="w-full h-full object-cover group-hover:scale-105 transition-transform">
+                    </div>
+                    <p class="text-xs font-semibold truncate">${p.title}</p>
+                    <p class="text-xs text-amber-600 font-bold">${p.price}원</p>
+                </div>
+            `).join('');
+
+            const freeFull = document.getElementById('freeBoardFull');
+            freeFull.innerHTML = freePosts.map(p => `
+                <tr class="hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0 cursor-pointer">
+                    <td class="px-8 py-5 text-gray-400 text-sm font-medium">${p.id}</td>
+                    <td class="px-8 py-5 font-bold text-gray-800">${p.title}</td>
+                    <td class="px-8 py-5 text-gray-500 text-sm">${p.author}</td>
+                    <td class="px-8 py-5 text-right text-gray-400 text-xs font-medium">${p.date}</td>
+                </tr>
+            `).join('');
+
+            const marketFull = document.getElementById('marketBoardFull');
+            marketFull.innerHTML = marketPosts.map(p => `
+                <div class="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 group cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                    <div class="relative aspect-square overflow-hidden">
+                        <img src="${p.img}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                    </div>
+                    <div class="p-5">
+                        <p class="text-xs text-gray-400 mb-1 font-medium">${p.author}</p>
+                        <h4 class="font-bold text-gray-800 truncate mb-2">${p.title}</h4>
+                        <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-50">
+                            <span class="text-lg font-extrabold text-amber-500">${p.price}원</span>
+                            <span class="text-[10px] text-gray-300 font-medium">${p.date}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.onload = () => {
+            const mainCtx = document.getElementById('scoreChart').getContext('2d');
+            new Chart(mainCtx, {
+                type: 'line',
+                data: {
+                    labels: ['25.05', '25.09', '26.03'],
+                    datasets: [
+                        { label: '소회장', data: [89, 97, 95], borderColor: '#10b981', tension: 0.4 },
+                        { label: '김부장', data: [102, 108, 96], borderColor: '#3b82f6', tension: 0.4 },
+                        { label: '이상전', data: [97, 97, 108], borderColor: '#f59e0b', tension: 0.4 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { reverse: true, min: 80, max: 120 } } }
+            });
+            switchUser("이상전");
+            initBoards();
+        };
+    </script>
+</body>
+</html>
